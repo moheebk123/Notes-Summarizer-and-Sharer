@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
-import { FiZap } from "react-icons/fi";
 
 export default function Home() {
   const [transcript, setTranscript] = useState("");
