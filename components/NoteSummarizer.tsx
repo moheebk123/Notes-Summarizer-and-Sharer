@@ -7,6 +7,8 @@ interface DocInterface {
   prompt: string;
   transcript: string;
   summary: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface NoteSummarizerProps {

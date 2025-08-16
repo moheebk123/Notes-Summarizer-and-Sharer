@@ -3,6 +3,19 @@ import mongoose from "mongoose";
 import NoteSummarizer from "@/components/NoteSummarizer";
 import { dbConnect, Summary } from "@/lib/db";
 
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+interface SummaryDoc {
+  _id: string;
+  prompt: string;
+  transcript: string;
+  summary: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 function NotFound() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen text-center">
@@ -17,26 +30,20 @@ function NotFound() {
   );
 }
 
-export default async function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: PageProps) {
   const { id } = await params;
 
   await dbConnect();
 
   if (!mongoose.Types.ObjectId.isValid(id)) return <NotFound />;
 
-  const doc = await Summary.findById(id);
-  doc._id = doc._id.toString();
+  const doc: SummaryDoc | null = await Summary.findById(id).lean<SummaryDoc>();
 
   if (!doc) return <NotFound />;
 
   return (
     <NoteSummarizer
-      doc={{
-        _id: doc.id.toString(),
-        transcript: doc.transcript,
-        prompt: doc.prompt,
-        summary: doc.summary,
-      }}
+      doc={{...doc, _id: doc._id.toString()}}
       showCreateLink={false}
     />
   );
