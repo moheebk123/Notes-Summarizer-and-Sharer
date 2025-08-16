@@ -1,14 +1,21 @@
 import mongoose from "mongoose";
-import { constants } from "node:fs/promises";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 const MONGODB_DATABASE_NAME = process.env.MONGODB_DATABASE_NAME!;
 
-const cached: {
+interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
-} = (global as any).mongoose || { conn: null, promise: null };
+}
 
+declare global {
+  var mongooseCache: MongooseCache | undefined;
+}
+
+const cached: MongooseCache = globalThis.mongooseCache || {
+  conn: null,
+  promise: null,
+};
 
 export async function dbConnect() {
   if (cached.conn) return cached.conn;
@@ -19,6 +26,8 @@ export async function dbConnect() {
       })
       .then((m) => m);
   cached.conn = await cached.promise;
+  globalThis.mongooseCache = cached;
+
   return cached.conn;
 }
 
