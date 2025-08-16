@@ -202,11 +202,10 @@ Risks: API rate limits may affect reporting
 **Response**:
 ```bash
 {
-  "ok": true,
-  "doc": "object(_id, transcript, prompt, summary, createdAt, updatedAt )"
+  "link": "string"
 }
 ```
-**Shareable Link:**
+**Shareable Link**
 
 
 ### 1️⃣ POST /api/update
@@ -223,9 +222,11 @@ Risks: API rate limits may affect reporting
 
 **Response**:
 ```bash
-{ "link": "string" }
+{
+  "ok": true,
+  "doc": "object(_id, transcript, prompt, summary, createdAt, updatedAt )"
+}
 ```
-**Shareable Link:**
 
 ---
 
