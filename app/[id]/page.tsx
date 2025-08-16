@@ -24,7 +24,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 
   if (!mongoose.Types.ObjectId.isValid(id)) return <NotFound />;
 
-  const doc: DocInterface | null = await Summary.findById(id);
+  const doc = await Summary.findById(id);
 
   if (!doc) return <NotFound />;
 
