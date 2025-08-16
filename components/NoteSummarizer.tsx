@@ -7,9 +7,6 @@ interface DocInterface {
   prompt: string;
   transcript: string;
   summary: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
 }
 
 interface NoteSummarizerProps {
@@ -243,7 +240,7 @@ export default function NoteSummarizer({
       </div>
 
       {showCreateLink && (
-        <div className="mt-8 p-3 border">
+        <div className={link && "mt-8 text-center"}>
           {link ? (
             <div>
               {/* Copy Box */}
@@ -253,9 +250,9 @@ export default function NoteSummarizer({
                   alert("Link copied!");
                 }}
                 title="Click to Copy Link"
-                className="bg-gray-600 p-2 rounded cursor-pointer hover:bg-gray-700 transition"
+                className="bg-gray-600 p-2 rounded-md cursor-pointer hover:bg-gray-700 transition text-lg"
               >
-                {link}
+                <span className="font-semibold">Click to Copy:</span> {link}
               </div>
 
               {/* Redirect Link */}
@@ -264,7 +261,7 @@ export default function NoteSummarizer({
                   href={link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 underline"
+                  className="text-blue-500 underline font-semibold text-lg"
                 >
                   Open Link
                 </a>
@@ -274,7 +271,7 @@ export default function NoteSummarizer({
             <button
               onClick={save}
               disabled={!transcript || !summary || !prompt || isSaving}
-              className={`mt-5 bg-purple-700 hover:bg-purple-800 transition px-5 py-2 font-semibold rounded-full ${
+              className={`mt-5 bg-purple-700 hover:bg-purple-800 transition px-5 py-2 font-semibold rounded-full w-full ${
                 !transcript || !summary || !prompt || isSaving
                   ? "cursor-not-allowed"
                   : "cursor-pointer"
@@ -287,7 +284,7 @@ export default function NoteSummarizer({
       )}
       {(doc?.prompt !== prompt ||
         doc?.transcript !== transcript ||
-        doc?.summary !== summary) && (
+        doc?.summary !== summary) && !showCreateLink && (
         <button
           onClick={update}
           disabled={!transcript || !summary || !prompt || isUpdating}

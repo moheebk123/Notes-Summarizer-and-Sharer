@@ -25,8 +25,19 @@ export default async function Page({ params }: { params: { id: string } }) {
   if (!mongoose.Types.ObjectId.isValid(id)) return <NotFound />;
 
   const doc = await Summary.findById(id);
+  doc._id = doc._id.toString();
 
   if (!doc) return <NotFound />;
 
-  return <NoteSummarizer doc={doc} showCreateLink={false} />;
+  return (
+    <NoteSummarizer
+      doc={{
+        _id: doc.id.toString(),
+        transcript: doc.transcript,
+        prompt: doc.prompt,
+        summary: doc.summary,
+      }}
+      showCreateLink={false}
+    />
+  );
 }
