@@ -6,6 +6,7 @@ A minimal Next.js full-stack app to:
 - Generate an AI summary
 - Edit the result
 - Share via email (SMTP) using Brevo + Nodemailer
+- Create a personal link to share, work and stores data
 
 ---
 
@@ -15,6 +16,7 @@ A minimal Next.js full-stack app to:
 - **🧾 Custom Instructions** – Prompt the AI (executive bullets, action items, risks, etc.)
 - **✏️ Editable Output** – Tweak the generated text before sending
 - **📧 Email Sharing** – Send the final summary via Brevo SMTP (Nodemailer)
+- **📧 Link Sharing** – Send personal link to collaborate with others
 - **🧩 Optional Persistence** – (Optional) Save/fetch summaries via MongoDB for shareable links
 - **🔒 Input Validation** – Zod validation on API routes
 - **🧹 Super Basic UI** – Focus on functionality, not design
@@ -28,7 +30,7 @@ A minimal Next.js full-stack app to:
 - **AI Tool:** Groq (llama-3.3-70b-versatile or another supported model)
 - **Email:** Nodemailer + Brevo SMTP
 - **Validation:** Zod
-- **DB (optional):** MongoDB Local / Atlas (Mongoose)
+- **DB:** MongoDB Local / Atlas (Mongoose)
 - **Deploy:** Vercel
 
 ---
@@ -85,6 +87,10 @@ The app will be accessible at [http://localhost:5173](http://localhost:5173)
 3. Click Generate Summary → editable text appears
 4. Edit if needed
 5. Enter recipient emails (comma-separated) and click Send Email
+6. Click Create Link → unique link for sharing
+7. Click on Link Box or Link Text to navigate to personal summarizer
+8. Open Link, Change Prompt/Transcript/Summary
+9. Click Update → data updated
 
 ## Sample Prompts
 
@@ -97,9 +103,7 @@ The app will be accessible at [http://localhost:5173](http://localhost:5173)
 
 ## 🌐 Live Demo
 
-```bash
-https://notes-summarizer-and-sharer.vercel.app/
-```
+[https://notes-summarizer-and-sharer.vercel.app](https://notes-summarizer-and-sharer.vercel.app)
 
 ---
 
@@ -118,14 +122,15 @@ note-summarizer/
 │   ├── page.tsx                      # Minimal UI
 │   └── api/
 │       ├── summarize/route.ts        # AI summarize endpoint (Groq)
-│       ├── share/route.ts            # Email via Brevo + Nodemailer
-│       └── save/route.ts             # persist summary (Mongo)
+│       ├── share/route.ts               # Email via Brevo + Nodemailer
+│       └── save/route.ts                # store summary data (Mongo)
+│       └── update/route.ts            # update summary data (Mongo)
 │── lib/
 │   ├── groq.ts                       # Groq client + summarize helper
 │   └── db.ts                         # Mongo connection + model
 │── public/
 │   ├── logo.svg                      # App logo (used in header)
-│   └── favicon.ico                   # Favicon
+│   ├── _icon_name_.png        # Icon Images (used all over the app)
 ├── .env.local                         # Local env vars (gitignored)
 ├── next.config.js
 ├── package.json
@@ -196,7 +201,29 @@ Risks: API rate limits may affect reporting
 
 **Response**:
 ```bash
-{ "link" }
+{
+  "ok": true,
+  "doc": "object(_id, transcript, prompt, summary, createdAt, updatedAt )"
+}
+```
+**Shareable Link:**
+
+
+### 1️⃣ POST /api/update
+
+**Body**:
+```bash
+{
+  "id": "string (required)",
+  "prompt": "string",
+  "transcript": "string",
+  "summary": "string"
+}
+```
+
+**Response**:
+```bash
+{ "link": "string" }
 ```
 **Shareable Link:**
 
