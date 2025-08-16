@@ -28,7 +28,7 @@ A minimal Next.js full-stack app to:
 - **AI Tool:** Groq (llama-3.3-70b-versatile or another supported model)
 - **Email:** Nodemailer + Brevo SMTP
 - **Validation:** Zod
-- **DB (optional):** MongoDB Atlas (Mongoose)
+- **DB (optional):** MongoDB Local / Atlas (Mongoose)
 - **Deploy:** Vercel
 
 ---
@@ -61,7 +61,8 @@ BREVO_SENDER_EMAIL=you@example.com
 BREVO_SENDER_NAME=Your Name
 
 # --- DB ---
-MONGODB_URI=your_mongodb_atlas_uri
+MONGODB_URI=your_mongodb_uri
+MONGODB_DATABASE_NAME=your_mongodb_database_name
 
 # --- Next App URL ---
 NEXT_PUBLIC_APP_URL=http://localhost:3000

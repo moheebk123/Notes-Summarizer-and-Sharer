@@ -1,0 +1,303 @@
+"use client";
+import Image from "next/image";
+import { useState } from "react";
+
+interface DocInterface {
+  _id: string;
+  prompt: string;
+  transcript: string;
+  summary: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+interface NoteSummarizerProps {
+  doc?: DocInterface;
+  showCreateLink?: boolean;
+}
+
+export default function NoteSummarizer({
+  doc,
+  showCreateLink,
+}: NoteSummarizerProps) {
+  const [transcript, setTranscript] = useState(doc?.transcript || "");
+  const [prompt, setPrompt] = useState(
+    doc?.prompt || "Summarize in bullet points for executives."
+  );
+  const [summary, setSummary] = useState<string>(doc?.summary || "");
+  const [subject, setSubject] = useState<string>("");
+  const [recipients, setRecipients] = useState<string>("");
+  const [link, setLink] = useState<string>("");
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [isSending, setIsSending] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+
+  const handleFile = async (f: File) => {
+    const text: string = await f.text();
+    setTranscript(text);
+  };
+
+  const generate = async () => {
+    setIsGenerating(true);
+    setSummary("");
+    const res = await fetch("/api/summarize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ transcript, prompt }),
+    });
+    const data = await res.json();
+    if (data.summary) {
+      setSummary(data.summary || "");
+    } else {
+      setSummary("Summarize in bullet points for executives.");
+      alert(`Failed: ${data.error}`);
+    }
+    setIsGenerating(false);
+  };
+
+  const share = async () => {
+    setIsSending(true);
+    const recs = recipients
+      .split(",")
+      .map((r) => r.trim())
+      .filter(Boolean);
+    const res = await fetch("/api/share", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        summary,
+        recipients: recs,
+        subject: subject || "Meeting Summary",
+      }),
+    });
+    const data = await res.json();
+    alert(data.ok ? "Sent!" : `Failed: ${data.error}`);
+    setIsSending(false);
+  };
+
+  const save = async () => {
+    setIsSaving(true);
+    const res = await fetch("/api/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, transcript, summary }),
+    });
+
+    const data = await res.json();
+    if (data.id) {
+      setLink(`${window.origin}/${data.id}` || "");
+      console.log(data.id);
+    } else {
+      alert(`Failed: ${data.error}`);
+    }
+    setIsSaving(false);
+  };
+
+  const update = async () => {
+    setIsUpdating(true);
+    if (doc?._id) {
+      const res = await fetch("/api/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: doc?._id, prompt, transcript, summary }),
+      });
+
+      const data = await res.json();
+      alert(data.ok ? "Updated!" : `Failed: ${data.error}`);
+    }
+    setIsUpdating(false);
+  };
+
+  return (
+    <div
+      style={{
+        maxWidth: 820,
+        margin: "40px auto",
+        padding: 16,
+        fontFamily: "system-ui",
+      }}
+    >
+      <div className="flex gap-4 items-center justify-center flex-col md:flex-row mb-5 border-b pb-2">
+        <Image src="/logo.svg" alt="AI Notes Logo" width={50} height={50} />
+        <h1 className="text-3xl sm:text-2xl text-center font-semibold mb-3">
+          AI Notes Summarizer and Sharer
+        </h1>
+      </div>
+
+      <div className="flex gap-3 flex-col border w-fit p-3">
+        <label className="font-semibold text-xl flex gap-3 items-center">
+          <Image src="/file.png" alt="Text File Logo" width={30} height={30} />{" "}
+          Upload .txt transcript
+        </label>
+        <input
+          type="file"
+          accept=".txt"
+          className="border rounded-lg border-gray-400 px-2 cursor-pointer bg-gray-400 hover:bg-gray-500 transition"
+          onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+        />
+      </div>
+
+      <div className="mt-8 border p-3">
+        <label className="font-semibold text-xl flex gap-3 items-center">
+          <Image
+            src="/transcript.png"
+            alt="Transcript Logo"
+            width={30}
+            height={30}
+          />
+          Paste Transcript
+        </label>
+        <textarea
+          value={transcript}
+          onChange={(e) => setTranscript(e.target.value)}
+          placeholder="Type your transcript..."
+          rows={8}
+          className="w-full p-2 mt-3 border border-gray-400 outline-none rounded-lg"
+        />
+      </div>
+
+      <div className="mt-8 border p-3">
+        <label className="font-semibold text-xl flex gap-3 items-center">
+          <Image
+            src="/instruction.png"
+            alt="Instruction Logo"
+            width={30}
+            height={30}
+          />
+          Custom instruction
+        </label>
+        <input
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Type your instructions..."
+          className="w-full p-2 mt-3 border border-gray-400 outline-none rounded-lg"
+        />
+      </div>
+
+      <button
+        onClick={generate}
+        disabled={!transcript || !prompt || isGenerating}
+        className={`mt-5 bg-purple-700 hover:bg-purple-800 transition px-5 py-2 font-semibold rounded-full ${
+          !transcript || !prompt || isGenerating
+            ? "cursor-not-allowed"
+            : "cursor-pointer"
+        }`}
+      >
+        {isGenerating ? "Generating…" : "Generate Summary"}
+      </button>
+
+      <div className="mt-8 border p-3">
+        <label className="font-semibold text-xl flex gap-3 items-center">
+          <Image src="/edit.png" alt="Edit Logo" width={40} height={40} />
+          Editable summary (Markdown/plain)
+        </label>
+        <textarea
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          rows={12}
+          className="w-full p-2 mt-3 border border-gray-400 outline-none rounded-lg"
+        />
+      </div>
+
+      <div className="mt-8 border p-3 flex flex-col gap-3">
+        <label className="font-semibold text-xl flex gap-3 items-center">
+          <Image src="/email.png" alt="Email Logo" width={30} height={30} />
+          Email Subject
+        </label>
+        <input
+          placeholder="Eg. Meeting summary"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          className="w-full p-2 border border-gray-400 outline-none rounded-lg"
+        />
+        <label className="font-semibold text-xl mt-3 flex gap-3 items-center">
+          <Image src="/share.png" alt="Share Logo" width={30} height={30} />
+          Share via email (comma-separated)
+        </label>
+        <input
+          placeholder="a@x.com, b@y.com"
+          value={recipients}
+          onChange={(e) => setRecipients(e.target.value)}
+          className="w-full p-2 border border-gray-400 outline-none rounded-lg"
+        />
+        <button
+          onClick={share}
+          disabled={!summary || !recipients || isSending}
+          className={`mt-5 bg-purple-700 hover:bg-purple-800 transition px-5 py-2 font-semibold rounded-full flex gap-3 items-center justify-center ${
+            !summary || !recipients || isSending
+              ? "cursor-not-allowed"
+              : "cursor-pointer"
+          }`}
+        >
+          {isSending ? (
+            "Sending…"
+          ) : (
+            <>
+              Send Email{" "}
+              <Image src="/send.png" alt="Send Logo" width={30} height={30} />
+            </>
+          )}
+        </button>
+      </div>
+
+      {showCreateLink && (
+        <div className="mt-8 p-3 border">
+          {link ? (
+            <div>
+              {/* Copy Box */}
+              <div
+                onClick={() => {
+                  navigator.clipboard.writeText(link);
+                  alert("Link copied!");
+                }}
+                title="Click to Copy Link"
+                className="bg-gray-600 p-2 rounded cursor-pointer hover:bg-gray-700 transition"
+              >
+                {link}
+              </div>
+
+              {/* Redirect Link */}
+              <div className="mt-2">
+                <a
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline"
+                >
+                  Open Link
+                </a>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={save}
+              disabled={!transcript || !summary || !prompt || isSaving}
+              className={`mt-5 bg-purple-700 hover:bg-purple-800 transition px-5 py-2 font-semibold rounded-full ${
+                !transcript || !summary || !prompt || isSaving
+                  ? "cursor-not-allowed"
+                  : "cursor-pointer"
+              }`}
+            >
+              {isSaving ? "Creating…" : "Create Link"}
+            </button>
+          )}
+        </div>
+      )}
+      {(doc?.prompt !== prompt ||
+        doc?.transcript !== transcript ||
+        doc?.summary !== summary) && (
+        <button
+          onClick={update}
+          disabled={!transcript || !summary || !prompt || isUpdating}
+          className={`mt-5 bg-purple-700 hover:bg-purple-800 transition px-5 py-2 font-semibold rounded-full w-full ${
+            isUpdating ? "cursor-not-allowed" : "cursor-pointer"
+          }`}
+        >
+          {isUpdating ? "Updating..." : "Update Note"}
+        </button>
+      )}
+    </div>
+  );
+}

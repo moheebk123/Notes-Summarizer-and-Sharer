@@ -34,7 +34,7 @@ Rules:
   const user = `Instruction: ${prompt}\n\nTranscript:\n${transcript}`;
 
   const resp = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
     messages: [
       { role: "system", content: system },
       { role: "user", content: user },
