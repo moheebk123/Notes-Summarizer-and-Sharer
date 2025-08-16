@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       summary,
     });
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, doc });
   } catch (e: unknown) {
     if (e instanceof Error) {
       return NextResponse.json({ error: e.message }, { status: 400 });
